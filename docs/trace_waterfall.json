@@ -1,18 +1,147 @@
 [
   {
     "step": 1,
-    "query": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
+    "query": "Bạn có thể tư vấn chung về du lịch nghỉ dưỡng không?",
     "action_type": "FINAL_ANSWER",
     "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
-    "output": "Chào bạn! Tôi là Agent hỗ trợ đặt phòng Vinpearl. \n\nHiện tại, tôi chưa có thông tin về quy chế học vụ của Đại học VinUni. Để tìm hiểu thông tin chính xác và chi tiết nhất về quy chế học vụ của VinUni, bạn vui lòng truy cập trang web chính thức của trường tại **vinuni.edu.vn** hoặc liên hệ trực tiếp với Phòng Dịch vụ Học vụ (Academic Services Office) của VinUni nhé.\n\nNếu bạn có nhu cầu tìm kiếm phòng trống, tham khảo giá phòng hoặc đặt phòng tại các khu nghỉ dưỡng/khách sạn **Vinpearl** (Nha Trang, Phú Quốc, Nam Hội An, Hạ Long...), tôi luôn sẵn sàng hỗ trợ bạn!",
-    "latency_ms": 5865.42
+    "output": "Chào bạn! Mình là Chuyên viên tư vấn và đặt phòng Vinpearl. Mình rất sẵn lòng hỗ trợ tư vấn các thông tin du lịch nghỉ dưỡng tại các quần thể nghỉ dưỡng của Vinpearl.\n\nVinpearl sở hữu các khu quần thể nghỉ dưỡng cao cấp tại nhiều điểm đến nổi tiếng hàng đầu Việt Nam:\n\n1. **Vinpearl Phú Quốc (Đảo Ngọc):**\n   - **Đặc điểm:** Thích hợp cho gia đình, cặp đôi với nhiều hoạt động giải trí như VinWonders, Vinpearl Safari, Grand World \"Thành phố không ngủ\".\n   - **Trải nghiệm:** Bãi biển riêng biệt, không gian xanh mát, nhiều tiện ích nghỉ dưỡng kết hợp vui chơi giải trí.\n\n2. **Vinpearl Nha Trang (Hòn Tre & Vịnh Nha Trang):**\n   - **Đặc điểm:** Tọa lạc trên đảo Hòn Tre tuyệt đẹp với tuyến cáp treo vượt biển/tàu cao tốc, kết hợp công viên giải trí VinWonders Nha Trang, sân golf đẳng cấp.\n   - **Trải nghiệm:** Đa dạng hạng phòng khách sạn & villa hướng biển, không gian sôi động, phong phú.\n\n3. **Vinpearl Nam Hội An:**\n   - **Đặc điểm:** Gần phố cổ Hội An, kết hợp giữa phong cách kiến trúc hiện đại và di sản văn hóa truyền thống, có công viên giải trí VinWonders Nam Hội An và Safari trên sông độc đáo.\n   - **Trải nghiệm:** Yên bình, tinh tế, phù hợp cho nghỉ dưỡng gia đình và khám phá văn hóa.\n\n4. **Vinpearl Resort & Spa Hạ Long:**\n   - **Đặc điểm:** Tòa lâu đài tráng lệ nằm hoàn toàn trên biển tại Đảo Rều, tầm nhìn 360 độ ra Vịnh Hạ Long.\n   - **Trải nghiệm:** Quyến rũ, riêng tư và sang trọng.\n\n---\n\n📌 **Nếu bạn muốn tìm phòng trống và nhận giá ưu đãi chính xác, hãy chia sẻ cho mình một số thông tin:**\n- Địa điểm bạn muốn đến (Phú Quốc, Nha Trang, Nam Hội An, Hạ Long...)\n- Ngày nhận phòng (Check-in) và Ngày trả phòng (Check-out)\n- Số lượng khách (bao nhiêu người lớn, bao nhiêu trẻ em)\n\nMình sẽ giúp bạn tra cứu các hạng phòng còn trống và hỗ trợ đặt phòng nhanh chóng nhất!",
+    "latency_ms": 7066.63
   },
   {
     "step": 1,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Tìm phòng Vinpearl Nha Trang từ 01/10/2026 đến 03/10/2026 cho 2 người lớn.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "search_rooms",
+    "arguments": {
+      "adults": 2,
+      "check_in": "2026-10-01",
+      "location": "Vinpearl Nha Trang",
+      "check_out": "2026-10-03"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "location": "Vinpearl Nha Trang",
+      "check_in": "2026-10-01",
+      "check_out": "2026-10-03",
+      "rooms": [
+        {
+          "room_type": "Deluxe Ocean View",
+          "capacity": 2,
+          "price_per_night": 2500000,
+          "available": 5
+        },
+        {
+          "room_type": "Family Suite",
+          "capacity": 4,
+          "price_per_night": 4200000,
+          "available": 2
+        }
+      ]
+    },
+    "latency_ms": 2919.5
+  },
+  {
+    "step": 2,
+    "query": "Tìm phòng Vinpearl Nha Trang từ 01/10/2026 đến 03/10/2026 cho 2 người lớn.",
     "action_type": "FINAL_ANSWER",
-    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
-    "output": "Tôi là Agent hỗ trợ đặt phòng Vinpearl. Hiện tại tôi chỉ có thể hỗ trợ tra cứu và đặt phòng tại các khu nghỉ dưỡng Vinpearl. \n\nTôi không có quyền truy cập hoặc dữ liệu để tra cứu thông tin học vụ của sinh viên. Bạn vui lòng liên hệ với phòng đào tạo hoặc cổng thông tin sinh viên của trường để được hỗ trợ nhé. \n\nNếu bạn cần hỗ trợ tìm kiếm hoặc đặt phòng Vinpearl, xin vui lòng cung cấp địa điểm, ngày nhận/trả phòng và số lượng khách!",
-    "latency_ms": 3632.48
+    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
+    "output": "Các phòng còn trống tại Vinpearl Nha Trang: Deluxe Ocean View (2,500,000 VND/đêm, tối đa 2 khách); Family Suite (4,200,000 VND/đêm, tối đa 4 khách).",
+    "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Đặt phòng Deluxe Ocean View tại Vinpearl Nha Trang từ 01/10/2026 đến 03/10/2026 cho 2 người lớn. Tên khách Nguyen Van An, số điện thoại 0900000000.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "book_room",
+    "arguments": {
+      "guest_name": "Nguyen Van An",
+      "check_in": "2026-10-01",
+      "children": 0,
+      "phone": "0900000000",
+      "adults": 2,
+      "location": "Vinpearl Nha Trang",
+      "room_type": "Deluxe Ocean View",
+      "check_out": "2026-10-03"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "booking_id": "VP-VINPEARL-NHA-20261001",
+      "location": "Vinpearl Nha Trang",
+      "room_type": "Deluxe Ocean View",
+      "check_in": "2026-10-01",
+      "check_out": "2026-10-03",
+      "nights": 2,
+      "total_price": 5000000,
+      "guest_name": "Nguyen Van An",
+      "phone": "0900000000",
+      "message": "Đặt phòng thành công tại Vinpearl Nha Trang cho Nguyen Van An."
+    },
+    "latency_ms": 3739.13
+  },
+  {
+    "step": 2,
+    "query": "Đặt phòng Deluxe Ocean View tại Vinpearl Nha Trang từ 01/10/2026 đến 03/10/2026 cho 2 người lớn. Tên khách Nguyen Van An, số điện thoại 0900000000.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
+    "output": "Đặt phòng thành công tại Vinpearl Nha Trang cho Nguyen Van An. Mã booking: VP-VINPEARL-NHA-20261001. Tổng tiền dự kiến: 5,000,000 VND cho 2 đêm.",
+    "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Tôi muốn đặt phòng Family Suite tại Vinpearl Phu Quoc từ 10/10/2026 đến 13/10/2026 cho 2 người lớn và 2 trẻ em, tên khách Tran Thi Binh, số điện thoại 0912345678.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "book_room",
+    "arguments": {
+      "location": "Vinpearl Phu Quoc",
+      "room_type": "Family Suite",
+      "children": 2,
+      "check_in": "2026-10-10",
+      "phone": "0912345678",
+      "adults": 2,
+      "guest_name": "Tran Thi Binh",
+      "check_out": "2026-10-13"
+    },
+    "observation": {
+      "status": "NOT_FOUND",
+      "message": "Loại phòng 'Family Suite' hiện không còn phù hợp hoặc không tồn tại."
+    },
+    "latency_ms": 4106.79
+  },
+  {
+    "step": 2,
+    "query": "Tôi muốn đặt phòng Family Suite tại Vinpearl Phu Quoc từ 10/10/2026 đến 13/10/2026 cho 2 người lớn và 2 trẻ em, tên khách Tran Thi Binh, số điện thoại 0912345678.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
+    "output": "Loại phòng 'Family Suite' hiện không còn phù hợp hoặc không tồn tại.",
+    "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Tìm phòng Vinpearl Nha Trang từ 01/10/2026 đến 03/10/2026 cho 10 người lớn.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "search_rooms",
+    "arguments": {
+      "location": "Vinpearl Nha Trang",
+      "adults": 10,
+      "check_in": "2026-10-01",
+      "check_out": "2026-10-03",
+      "children": 0
+    },
+    "observation": {
+      "status": "NOT_FOUND",
+      "message": "Không tìm thấy phòng Vinpearl phù hợp với yêu cầu.",
+      "location": "Vinpearl Nha Trang",
+      "check_in": "2026-10-01",
+      "check_out": "2026-10-03"
+    },
+    "latency_ms": 3136.96
+  },
+  {
+    "step": 2,
+    "query": "Tìm phòng Vinpearl Nha Trang từ 01/10/2026 đến 03/10/2026 cho 10 người lớn.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
+    "output": "Không tìm thấy phòng Vinpearl phù hợp với yêu cầu.",
+    "latency_ms": 10.0
   }
 ]
