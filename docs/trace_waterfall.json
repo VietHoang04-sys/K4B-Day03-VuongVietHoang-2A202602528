@@ -3,27 +3,16 @@
     "step": 1,
     "query": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
     "action_type": "FINAL_ANSWER",
-    "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool.",
-    "output": "[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-    "latency_ms": 0.0
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Chào bạn! Tôi là Agent hỗ trợ đặt phòng Vinpearl. \n\nHiện tại, tôi chưa có thông tin về quy chế học vụ của Đại học VinUni. Để tìm hiểu thông tin chính xác và chi tiết nhất về quy chế học vụ của VinUni, bạn vui lòng truy cập trang web chính thức của trường tại **vinuni.edu.vn** hoặc liên hệ trực tiếp với Phòng Dịch vụ Học vụ (Academic Services Office) của VinUni nhé.\n\nNếu bạn có nhu cầu tìm kiếm phòng trống, tham khảo giá phòng hoặc đặt phòng tại các khu nghỉ dưỡng/khách sạn **Vinpearl** (Nha Trang, Phú Quốc, Nam Hội An, Hạ Long...), tôi luôn sẵn sàng hỗ trợ bạn!",
+    "latency_ms": 5865.42
   },
   {
     "step": 1,
     "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
-    "action_type": "TOOL_EXECUTION",
-    "tool_name": "academic_query",
-    "arguments": {
-      "student_id": "SV2026001"
-    },
-    "observation": {},
-    "latency_ms": 0.0
-  },
-  {
-    "step": 2,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
     "action_type": "FINAL_ANSWER",
-    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Chưa thể trả lời chi tiết do chưa nhận được dữ liệu từ MCP Server (hãy hoàn thành TODO 2.1).",
-    "latency_ms": 10.0
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Tôi là Agent hỗ trợ đặt phòng Vinpearl. Hiện tại tôi chỉ có thể hỗ trợ tra cứu và đặt phòng tại các khu nghỉ dưỡng Vinpearl. \n\nTôi không có quyền truy cập hoặc dữ liệu để tra cứu thông tin học vụ của sinh viên. Bạn vui lòng liên hệ với phòng đào tạo hoặc cổng thông tin sinh viên của trường để được hỗ trợ nhé. \n\nNếu bạn cần hỗ trợ tìm kiếm hoặc đặt phòng Vinpearl, xin vui lòng cung cấp địa điểm, ngày nhận/trả phòng và số lượng khách!",
+    "latency_ms": 3632.48
   }
 ]

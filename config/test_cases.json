@@ -2,36 +2,36 @@
   {
     "id": "TC01",
     "type": "direct_query",
-    "question": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
-    "expected_behavior": "Chatbot trả lời trực tiếp từ System Prompt, không cần gọi bất kỳ Tool nào.",
+    "question": "Bạn có thể tư vấn chung về du lịch nghỉ dưỡng không?",
+    "expected_behavior": "Agent trả lời trực tiếp hoặc yêu cầu thêm thông tin, không gọi tool khi khách chưa cung cấp nhu cầu tìm phòng cụ thể.",
     "complexity": "Low"
   },
   {
     "id": "TC02",
-    "type": "single_tool_query",
-    "question": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
-    "expected_behavior": "Agent nhận diện nhu cầu tra cứu, tự động phát sinh Tool Call 'academic_query' với mã SV2026001.",
+    "type": "room_search",
+    "question": "Tìm phòng Vinpearl Nha Trang từ 01/10/2026 đến 03/10/2026 cho 2 người lớn.",
+    "expected_behavior": "Agent gọi tool 'search_rooms' với location là Vinpearl Nha Trang, check_in là 2026-10-01, check_out là 2026-10-03 và adults là 2; sau đó hiển thị các phòng còn trống.",
     "complexity": "Medium"
   },
   {
     "id": "TC03",
-    "type": "appointment_booking",
-    "question": "TODO: [Học viên tự viết câu hỏi yêu cầu Agent đặt lịch hẹn tư vấn học vụ]",
-    "expected_behavior": "Agent tự động phát sinh Tool Call 'schedule_appointment' với đúng thời gian và thông tin sinh viên.",
-    "complexity": "Medium"
+    "type": "room_booking",
+    "question": "Đặt phòng Deluxe Ocean View tại Vinpearl Nha Trang từ 01/10/2026 đến 03/10/2026 cho 2 người lớn. Tên khách Nguyen Van An, số điện thoại 0900000000.",
+    "expected_behavior": "Agent gọi tool 'book_room' với đúng loại phòng, thời gian, số khách và thông tin liên hệ; kết quả phải chứa trạng thái SUCCESS và booking_id.",
+    "complexity": "High"
   },
   {
     "id": "TC04",
-    "type": "multi_step_reasoning",
-    "question": "TODO: [Học viên tự viết câu hỏi yêu cầu Agent suy luận ReAct đa bước (Tra cứu -> Đặt lịch với Cố vấn)]",
-    "expected_behavior": "Agent thực hiện chuỗi suy luận ReAct: Tra cứu cố vấn học tập của sinh viên trước, sau đó tiến hành đặt lịch hẹn.",
+    "type": "room_booking_with_children",
+    "question": "Tôi muốn đặt phòng Family Suite tại Vinpearl Phu Quoc từ 10/10/2026 đến 13/10/2026 cho 2 người lớn và 2 trẻ em, tên khách Tran Thi Binh, số điện thoại 0912345678.",
+    "expected_behavior": "Agent nhận diện yêu cầu đặt phòng, gọi tool 'book_room' với children là 2 và trả về mã booking cùng tổng tiền từ kết quả tool, không tự bịa dữ liệu.",
     "complexity": "High"
   },
   {
     "id": "TC05",
     "type": "edge_case_handling",
-    "question": "TODO: [Học viên tự viết câu hỏi tra cứu mã sinh viên không tồn tại (ví dụ SV9999999)]",
-    "expected_behavior": "Agent nhận kết quả NOT_FOUND từ Tool và đưa ra phản hồi lịch sự, chính xác không bịa đặt dữ liệu.",
+    "question": "Tìm phòng Vinpearl Nha Trang từ 01/10/2026 đến 03/10/2026 cho 10 người lớn.",
+    "expected_behavior": "Agent gọi 'search_rooms', nhận trạng thái NOT_FOUND vì không có loại phòng đủ sức chứa, rồi thông báo lịch sự rằng chưa tìm thấy phòng phù hợp và không bịa đặt phòng.",
     "complexity": "Medium"
   }
 ]
