@@ -6,6 +6,8 @@ Hỗ trợ Native Tool Calling và chuyển đổi linh hoạt qua biến môi t
 import os
 import sys
 import json
+import re
+import unicodedata
 from typing import Dict, Any, List
 from dotenv import load_dotenv
 
@@ -27,36 +29,90 @@ class BaseLLMProvider:
 
 
 class MockOfflineProvider(BaseLLMProvider):
-    """Offline Mock Provider dùng để chạy thử mà không tốn API Key"""
+    """Offline provider that recognizes common Vinpearl booking requests."""
     def __init__(self):
         self.model_name = "Offline-Mock-Model-2026"
 
     def generate(self, prompt: str, system_prompt: str = "") -> str:
-        return f"[Mock Chatbot Response]: Xin chào! Tôi đã nhận được câu hỏi '{prompt}'. (Chế độ Chatbot không có Tool tra cứu dữ liệu thời gian thực)."
+        return (
+            f"[Mock Chatbot Response]: Tôi đã nhận được yêu cầu '{prompt}'. "
+            "Vui lòng cung cấp địa điểm và thời gian nếu muốn tìm phòng Vinpearl."
+        )
 
     def generate_with_tools(self, prompt: str, tools_schema: List[Dict[str, Any]], system_prompt: str = "") -> Dict[str, Any]:
         prompt_lower = prompt.lower()
-        
-        # Mô phỏng nhận diện intent gọi Tool
-        if "sv2026001" in prompt_lower and "đặt lịch" in prompt_lower:
+        prompt_ascii = "".join(
+            character
+            for character in unicodedata.normalize("NFD", prompt_lower)
+            if unicodedata.category(character) != "Mn"
+        )
+        dates = re.findall(r"\b(\d{1,2}[/-]\d{1,2}[/-]\d{4}|\d{4}-\d{2}-\d{2})\b", prompt_ascii)
+        normalized_dates = []
+        for value in dates[:2]:
+            if "-" in value and value[:4].isdigit():
+                normalized_dates.append(value)
+            else:
+                day, month, year = re.split(r"[/-]", value)
+                normalized_dates.append(f"{year}-{int(month):02d}-{int(day):02d}")
+        location = next(
+            (
+                name
+                for name in ("Vinpearl Nha Trang", "Vinpearl Phu Quoc", "Vinpearl Da Nang")
+                if name.lower() in prompt_lower
+            ),
+            "Vinpearl Nha Trang",
+        )
+        adults_match = re.search(r"(\d+)\s*(?:nguoi lon|adults?)", prompt_ascii)
+        children_match = re.search(r"(\d+)\s*(?:tre em|children?)", prompt_ascii)
+        adults = int(adults_match.group(1)) if adults_match else 2
+        children = int(children_match.group(1)) if children_match else 0
+        check_in, check_out = (normalized_dates + ["2026-10-01", "2026-10-03"])[:2]
+
+        room_types = (
+            "Deluxe Ocean View", "Family Suite", "Deluxe Garden View",
+            "Family Villa", "Pool Villa",
+        )
+        room_type = next((room for room in room_types if room.lower() in prompt_lower), None)
+        is_booking = any(word in prompt_ascii for word in ("dat phong", "book room", "booking"))
+        if is_booking and room_type:
+            phone_match = re.search(r"\b(?:0\d{9}|(?:\+84)\d{9})\b", prompt_lower)
+            name_match = re.search(r"(?:tên|ten|khách tên|khach ten)\s*[:\-]?\s*([A-Za-zÀ-ỹ ]+)", prompt, re.IGNORECASE)
             return {
                 "type": "tool_call",
-                "tool_name": "schedule_appointment",
-                "arguments": {"student_id": "SV2026001", "datetime_str": "14:00 15/09/2026", "advisor_name": "PGS.TS Nguyễn Văn A"},
-                "thought": "Người dùng yêu cầu đặt lịch hẹn tư vấn cho sinh viên SV2026001. Tôi sẽ gọi tool schedule_appointment."
+                "tool_name": "book_room",
+                "arguments": {
+                    "location": location,
+                    "room_type": room_type,
+                    "check_in": check_in,
+                    "check_out": check_out,
+                    "adults": adults,
+                    "children": children,
+                    "guest_name": name_match.group(1).strip() if name_match else "Khách Vinpearl",
+                    "phone": phone_match.group(0) if phone_match else "0900000000",
+                },
+                "thought": "Khách đã chọn loại phòng và yêu cầu đặt phòng. Tôi sẽ gọi book_room.",
             }
-        elif "sv2026001" in prompt_lower or "tra cứu" in prompt_lower:
+        if (
+            any(word in prompt_ascii for word in ("phong", "room", "vinpearl"))
+            and not is_booking
+        ):
             return {
                 "type": "tool_call",
-                "tool_name": "academic_query",
-                "arguments": {"student_id": "SV2026001"},
-                "thought": "Người dùng muốn tra cứu thông tin học vụ của sinh viên SV2026001. Tôi sẽ gọi tool academic_query."
+                "tool_name": "search_rooms",
+                "arguments": {
+                    "location": location,
+                    "check_in": check_in,
+                    "check_out": check_out,
+                    "adults": adults,
+                    "children": children,
+                },
+                "thought": "Khách đang tìm phòng. Tôi sẽ gọi search_rooms để kiểm tra phòng trống.",
             }
         else:
             return {
                 "type": "text",
-                "content": f"[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-                "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool."
+                "content": "Bạn muốn đặt phòng Vinpearl ở đâu và trong thời gian nào?",
+                "thought": "Chưa đủ thông tin để gọi công cụ đặt phòng.",
             }
 
 

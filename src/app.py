@@ -1,7 +1,4 @@
-"""
-🚀 CORE AGENT APPLICATION (DAY 03: CHATBOT VS REACT AGENT)
-Thực thi so sánh giữa Chatbot Baseline (Cấp 2) và ReAct Agent kết nối MCP Server (Cấp 3).
-"""
+"""Core application for the Vinpearl room-booking ReAct agent."""
 
 import json
 import os
@@ -17,7 +14,7 @@ if sys.stdout.encoding != 'utf-8':
     except Exception:
         pass
 
-from mcp_server import MCPAcademicServer
+from mcp_server import MCPVinpearlServer
 from prompts import (
     CHATBOT_BASELINE_PROMPT,
     REACT_AGENT_SYSTEM_PROMPT,
@@ -61,7 +58,30 @@ def run_baseline_chatbot(user_query: str, provider):
     print(f"🤖 Chatbot phản hồi:\n{response}")
 
 
-def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) -> list:
+def _format_observation(observation: dict) -> str:
+    """Turn a Vinpearl tool response into a user-facing answer."""
+    status = observation.get("status")
+    if status == "SUCCESS" and "rooms" in observation:
+        rooms = observation["rooms"]
+        options = "; ".join(
+            f"{room['room_type']} ({room['price_per_night']:,} VND/đêm, "
+            f"tối đa {room['capacity']} khách)"
+            for room in rooms
+        )
+        return f"Các phòng còn trống tại {observation.get('location')}: {options}."
+    if status == "SUCCESS" and "booking_id" in observation:
+        return (
+            f"{observation.get('message', 'Đặt phòng thành công')} "
+            f"Mã booking: {observation['booking_id']}. "
+            f"Tổng tiền dự kiến: {observation.get('total_price', 0):,} VND "
+            f"cho {observation.get('nights', 0)} đêm."
+        )
+    if status in {"NOT_FOUND", "INVALID_REQUEST", "UNKNOWN_TOOL", "EXECUTION_ERROR"}:
+        return observation.get("message") or observation.get("error", "Không thể xử lý yêu cầu.")
+    return json.dumps(observation, ensure_ascii=False)
+
+
+def run_react_agent(user_query: str, provider, mcp_server: MCPVinpearlServer) -> list:
     """
     [REACT AGENT LOOP] Thực thi vòng lặp Thought -> Action -> Observation với MCP Server
     Trả về danh sách trace log của phiên thực thi.
@@ -118,22 +138,7 @@ def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) ->
                 print(f"👁️ [Observation từ MCP Server]: {obs_str}")
                 
                 # Tổng hợp Final Answer từ kết quả Observation thực tế
-                if obs_data.get("status") == "SUCCESS":
-                    if "data" in obs_data:
-                        d = obs_data["data"]
-                        final_answer = (
-                            f"Kết quả tra cứu cho sinh viên {obs_data.get('student_id', '')} ({d.get('full_name', '')}): "
-                            f"Lớp {d.get('class', '')}, GPA: {d.get('gpa', '')}, Email: {d.get('email', '')}, "
-                            f"Trạng thái: {d.get('status', '')}, Cố vấn: {d.get('advisor', '')}."
-                        )
-                    elif "message" in obs_data:
-                        final_answer = obs_data["message"]
-                    else:
-                        final_answer = f"Đã hoàn tất xử lý qua MCP Server: {json.dumps(obs_data, ensure_ascii=False)}"
-                elif obs_data.get("status") == "NOT_FOUND":
-                    final_answer = obs_data.get("message", "Không tìm thấy thông tin sinh viên yêu cầu.")
-                else:
-                    final_answer = f"Phản hồi từ công cụ: {json.dumps(obs_data, ensure_ascii=False)}"
+                final_answer = _format_observation(obs_data)
             
             trace_logs.append({
                 "step": step,
@@ -164,11 +169,11 @@ def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) ->
 
 if __name__ == "__main__":
     print("==========================================================")
-    print("🏫 VINUNI AI COURSE - DAY 03 LAB: CHATBOT VS REACT AGENT")
+    print("🏨 VINPEARL AI BOOKING AGENT - DAY 03 LAB")
     print("==========================================================")
     
     provider = get_llm_provider()
-    mcp_server = MCPAcademicServer()
+    mcp_server = MCPVinpearlServer()
     
     print(f"🔌 LLM Provider: {provider.__class__.__name__}")
     print(f"🌐 MCP Server: {mcp_server.server_name}\n")
@@ -179,9 +184,8 @@ if __name__ == "__main__":
     if "--interactive" in sys.argv:
         print("🎮 [INTERACTIVE MODE] Trò chuyện trực tiếp với ReAct Agent:")
         print("💡 Gợi ý câu hỏi thử nghiệm:")
-        print("   - Câu hỏi chung: 'Quy chế học vụ VinUni yêu cầu bao nhiêu tín chỉ?'")
-        print("   - Tra cứu học vụ: 'Hãy tra cứu thông tin học vụ của sinh viên SV2026001'")
-        print("   - Đặt lịch hẹn: 'Đặt lịch hẹn tư vấn cho SV2026001 vào 14:00 ngày 15/09/2026'")
+        print("   - Tìm phòng: 'Tìm phòng Vinpearl Nha Trang 01/10/2026 đến 03/10/2026 cho 2 người lớn'")
+        print("   - Đặt phòng: 'Đặt phòng Deluxe Ocean View Vinpearl Nha Trang 01/10/2026 đến 03/10/2026'")
         print("   - Gõ 'exit' hoặc 'quit' để kết thúc phiên trò chuyện.\n")
         while True:
             try:
@@ -227,7 +231,7 @@ if __name__ == "__main__":
         print("  2. Chạy toàn bộ Test Cases:    python src/app.py --all\n")
         
         sample_query = tests[1]["question"]
-        print(f"--- 🏁 DEMO CHẠY THỬ 1 TEST CASE MẪU (TC02: Tra cứu học vụ) ---")
+        print(f"--- 🏁 DEMO CHẠY THỬ 1 TEST CASE MẪU (TC02: Tìm phòng) ---")
         logs = run_react_agent(sample_query, provider, mcp_server)
         save_waterfall_trace(logs)
         print("\n💡 Hãy thử ngay lệnh: python src/app.py --interactive để chat trực tiếp!")
