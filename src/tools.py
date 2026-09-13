@@ -1,118 +1,238 @@
-"""
-🛠️ TOOL DEFINITIONS & EXECUTION BACKEND
-Mã nguồn chứa danh sách Tool Schemas (JSON Schema) và Execution Layer phục vụ cho MCP Server.
-"""
+"""Tool schemas and execution functions for the Vinpearl booking assistant."""
 
 import json
-from typing import Dict, Any
+from datetime import date, datetime
+from typing import Any, Dict, Optional
 
-# ==============================================================================
-# 1. KHAI BÁO TOOL SCHEMAS CHUẨN NATIVE JSON SCHEMA (TASK 1.2)
-# ==============================================================================
 
 TOOLS_SCHEMA = [
-    # Tool 1: Đã được định nghĩa mẫu sẵn cho Học viên tham khảo
     {
-        "name": "academic_query",
-        "description": "Tra cứu hồ sơ và thông tin học vụ của sinh viên VinUni bằng mã sinh viên.",
+        "name": "search_rooms",
+        "description": (
+            "Tìm các loại phòng Vinpearl còn trống theo địa điểm, ngày nhận "
+            "phòng, ngày trả phòng và số lượng khách."
+        ),
         "parameters": {
             "type": "object",
             "properties": {
-                "student_id": {
+                "location": {
                     "type": "string",
-                    "description": "Mã sinh viên cần tra cứu (ví dụ: 'SV2026001')"
-                }
+                    "description": "Địa điểm/khu nghỉ Vinpearl, ví dụ 'Vinpearl Nha Trang'.",
+                },
+                "check_in": {
+                    "type": "string",
+                    "description": "Ngày nhận phòng theo định dạng YYYY-MM-DD.",
+                },
+                "check_out": {
+                    "type": "string",
+                    "description": "Ngày trả phòng theo định dạng YYYY-MM-DD.",
+                },
+                "adults": {
+                    "type": "integer",
+                    "description": "Số người lớn.",
+                    "minimum": 1,
+                },
+                "children": {
+                    "type": "integer",
+                    "description": "Số trẻ em.",
+                    "minimum": 0,
+                },
             },
-            "required": ["student_id"]
-        }
+            "required": ["location", "check_in", "check_out", "adults"],
+        },
     },
-    
-    # --------------------------------------------------------------------------
-    # TODO 1.2: HỌC VIÊN HOÀN THIỆN TOOL SCHEMA CHO 'schedule_appointment'
-    # 🎯 YÊU CẦU THIẾT KẾ SCHEMA (JSON SCHEMA STANDARD):
-    # 1. Tool dùng để đặt lịch hẹn tư vấn học vụ với Cố vấn học tập VinUni.
-    # 2. Thiết kế các tham số (properties) để LLM trích xuất:
-    #    - student_id (string): Mã sinh viên cần đặt lịch (ví dụ: 'SV2026001')
-    #    - datetime_str (string): Thời gian hẹn (ví dụ: '14:00 15/09/2026')
-    #    - advisor_name (string): Tên cố vấn học tập
-    # 3. Khai báo danh sách các trường bắt buộc (required).
-    # --------------------------------------------------------------------------
     {
-        "name": "schedule_appointment",
-        "description": "Đặt lịch hẹn tư vấn học vụ với Cố vấn học tập VinUni.",
+        "name": "book_room",
+        "description": "Đặt phòng Vinpearl sau khi người dùng đã chọn loại phòng.",
         "parameters": {
             "type": "object",
             "properties": {
-                # TODO 1.2: Khai báo các thuộc tính tham số cho Tool tại đây...
+                "location": {
+                    "type": "string",
+                    "description": "Địa điểm/khu nghỉ Vinpearl.",
+                },
+                "room_type": {
+                    "type": "string",
+                    "description": "Tên loại phòng muốn đặt.",
+                },
+                "check_in": {
+                    "type": "string",
+                    "description": "Ngày nhận phòng theo định dạng YYYY-MM-DD.",
+                },
+                "check_out": {
+                    "type": "string",
+                    "description": "Ngày trả phòng theo định dạng YYYY-MM-DD.",
+                },
+                "adults": {
+                    "type": "integer",
+                    "description": "Số người lớn.",
+                    "minimum": 1,
+                },
+                "children": {
+                    "type": "integer",
+                    "description": "Số trẻ em.",
+                    "minimum": 0,
+                },
+                "guest_name": {
+                    "type": "string",
+                    "description": "Họ tên khách đứng tên đặt phòng.",
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "Số điện thoại liên hệ của khách.",
+                },
             },
-            "required": [] # TODO 1.2: Khai báo danh sách các trường bắt buộc tại đây...
-        }
-    }
+            "required": [
+                "location",
+                "room_type",
+                "check_in",
+                "check_out",
+                "adults",
+                "guest_name",
+                "phone",
+            ],
+        },
+    },
 ]
 
-# ==============================================================================
-# 2. MÔ PHỎNG DỮ LIỆU & HÀM THỰC THI TOOL (EXECUTION LAYER)
-# ==============================================================================
 
-MOCK_DATABASE = {
-    "SV2026001": {
-        "full_name": "Nguyễn Văn An",
-        "class": "AI-K4",
-        "gpa": 3.85,
-        "email": "an.nv@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "PGS.TS Nguyễn Văn A"
-    },
-    "SV2026002": {
-        "full_name": "Trần Thị Bình",
-        "class": "AI-K4",
-        "gpa": 3.60,
-        "email": "binh.tt@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "TS. Lê Thị B"
-    }
+MOCK_ROOMS = {
+    "vinpearl nha trang": [
+        {"room_type": "Deluxe Ocean View", "capacity": 2, "price_per_night": 2500000, "available": 5},
+        {"room_type": "Family Suite", "capacity": 4, "price_per_night": 4200000, "available": 2},
+    ],
+    "vinpearl phu quoc": [
+        {"room_type": "Deluxe Garden View", "capacity": 2, "price_per_night": 2800000, "available": 4},
+        {"room_type": "Family Villa", "capacity": 6, "price_per_night": 6500000, "available": 1},
+    ],
+    "vinpearl da nang": [
+        {"room_type": "Deluxe Ocean View", "capacity": 2, "price_per_night": 2300000, "available": 3},
+        {"room_type": "Pool Villa", "capacity": 4, "price_per_night": 5500000, "available": 2},
+    ],
 }
 
 
-def execute_academic_query(student_id: str) -> str:
-    """Thực thi tra cứu học vụ theo mã sinh viên"""
-    student = MOCK_DATABASE.get(student_id.strip().upper())
-    if student:
-        return json.dumps({
-            "status": "SUCCESS",
-            "student_id": student_id,
-            "data": student
-        }, ensure_ascii=False)
-    else:
-        return json.dumps({
-            "status": "NOT_FOUND",
-            "message": f"Không tìm thấy dữ liệu sinh viên có mã '{student_id}'"
-        }, ensure_ascii=False)
+def _result(status: str, **payload: Any) -> str:
+    return json.dumps({"status": status, **payload}, ensure_ascii=False)
 
 
-def execute_schedule_appointment(student_id: str, datetime_str: str, advisor_name: str = "PGS.TS Nguyễn Văn A") -> str:
-    """Thực thi đặt lịch hẹn tư vấn học vụ"""
-    return json.dumps({
-        "status": "SUCCESS",
-        "booking_id": f"BK-{student_id}-99",
-        "student_id": student_id,
-        "datetime": datetime_str,
-        "advisor": advisor_name,
-        "message": f"Đặt lịch thành công cho sinh viên {student_id} với {advisor_name} vào lúc {datetime_str}."
-    }, ensure_ascii=False)
+def _parse_stay(check_in: str, check_out: str) -> tuple[Optional[date], Optional[str]]:
+    try:
+        start = datetime.strptime(check_in, "%Y-%m-%d").date()
+        end = datetime.strptime(check_out, "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        return None, "Ngày nhận/trả phòng phải theo định dạng YYYY-MM-DD."
+    if start < date.today():
+        return None, "Ngày nhận phòng không được ở trong quá khứ."
+    if end <= start:
+        return None, "Ngày trả phòng phải sau ngày nhận phòng."
+    return start, None
 
 
-# Router gọi tool thực tế
+def _validate_guests(adults: int, children: int) -> Optional[str]:
+    if not isinstance(adults, int) or isinstance(adults, bool) or adults < 1:
+        return "Số người lớn phải là số nguyên dương."
+    if not isinstance(children, int) or isinstance(children, bool) or children < 0:
+        return "Số trẻ em phải là số nguyên không âm."
+    return None
+
+
+def _find_rooms(location: str, check_in: str, check_out: str, adults: int, children: int):
+    _, date_error = _parse_stay(check_in, check_out)
+    if date_error:
+        return None, date_error
+    guest_error = _validate_guests(adults, children)
+    if guest_error:
+        return None, guest_error
+    rooms = MOCK_ROOMS.get(location.strip().lower())
+    if rooms is None:
+        return None, f"Chưa có dữ liệu phòng cho Vinpearl tại '{location}'."
+    guests = adults + children
+    return [room for room in rooms if room["available"] > 0 and room["capacity"] >= guests], None
+
+
+def execute_search_rooms(
+    location: str,
+    check_in: str,
+    check_out: str,
+    adults: int,
+    children: int = 0,
+) -> str:
+    """Tra cứu phòng Vinpearl phù hợp với một khoảng thời gian."""
+    rooms, error = _find_rooms(location, check_in, check_out, adults, children)
+    if error:
+        return _result("INVALID_REQUEST", message=error)
+    if not rooms:
+        return _result(
+            "NOT_FOUND",
+            message="Không tìm thấy phòng Vinpearl phù hợp với yêu cầu.",
+            location=location,
+            check_in=check_in,
+            check_out=check_out,
+        )
+    return _result(
+        "SUCCESS",
+        location=location,
+        check_in=check_in,
+        check_out=check_out,
+        rooms=rooms,
+    )
+
+
+def execute_book_room(
+    location: str,
+    room_type: str,
+    check_in: str,
+    check_out: str,
+    adults: int,
+    guest_name: str,
+    phone: str,
+    children: int = 0,
+) -> str:
+    """Đặt một phòng Vinpearl trong dữ liệu mô phỏng."""
+    rooms, error = _find_rooms(location, check_in, check_out, adults, children)
+    if error:
+        return _result("INVALID_REQUEST", message=error)
+    if not guest_name.strip() or not phone.strip():
+        return _result("INVALID_REQUEST", message="Cần cung cấp họ tên và số điện thoại liên hệ.")
+
+    selected = next(
+        (room for room in rooms if room["room_type"].casefold() == room_type.strip().casefold()),
+        None,
+    )
+    if selected is None:
+        return _result("NOT_FOUND", message=f"Loại phòng '{room_type}' hiện không còn phù hợp hoặc không tồn tại.")
+
+    nights = (datetime.strptime(check_out, "%Y-%m-%d").date() -
+              datetime.strptime(check_in, "%Y-%m-%d").date()).days
+    booking_id = f"VP-{location.strip().upper().replace(' ', '-')[:12]}-{check_in.replace('-', '')}"
+    return _result(
+        "SUCCESS",
+        booking_id=booking_id,
+        location=location,
+        room_type=selected["room_type"],
+        check_in=check_in,
+        check_out=check_out,
+        nights=nights,
+        total_price=selected["price_per_night"] * nights,
+        guest_name=guest_name.strip(),
+        phone=phone.strip(),
+        message=f"Đặt phòng thành công tại {location} cho {guest_name.strip()}.",
+    )
+
+
 TOOL_ROUTER = {
-    "academic_query": execute_academic_query,
-    "schedule_appointment": execute_schedule_appointment
+    "search_rooms": execute_search_rooms,
+    "book_room": execute_book_room,
 }
+
 
 def dispatch_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:
-    """Hàm trung chuyển thực thi tool"""
-    if tool_name in TOOL_ROUTER:
-        try:
-            return TOOL_ROUTER[tool_name](**arguments)
-        except Exception as e:
-            return json.dumps({"status": "EXECUTION_ERROR", "error": str(e)}, ensure_ascii=False)
-    return json.dumps({"status": "UNKNOWN_TOOL", "error": f"Tool '{tool_name}' không tồn tại!"}, ensure_ascii=False)
+    """Định tuyến và thực thi một tool theo tên được MCP server yêu cầu."""
+    tool = TOOL_ROUTER.get(tool_name)
+    if tool is None:
+        return _result("UNKNOWN_TOOL", error=f"Tool '{tool_name}' không tồn tại.")
+    try:
+        return tool(**arguments)
+    except TypeError as exc:
+        return _result("INVALID_REQUEST", error=f"Tham số gọi tool không hợp lệ: {exc}")
